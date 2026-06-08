@@ -28,3 +28,18 @@ Background video: `public/assets/tunnel-bg.mp4` (copied from your Downloads file
 npm run build
 npm run preview
 ```
+
+## GitHub Pages
+
+The site is deployed automatically on push to `main` via GitHub Actions.
+
+1. In the repo on GitHub, go to **Settings → Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions** (not “Deploy from branch”).
+3. Push to `main`; the workflow builds `dist/` with base `/Invoko-Agent-Memory/` and publishes it.
+
+Local preview matching production:
+
+```bash
+npm run preview:pages
+# open http://localhost:4173/Invoko-Agent-Memory/
+```
