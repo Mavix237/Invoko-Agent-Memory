@@ -7,71 +7,73 @@
   </head>
   <body>
     <div id="app">
-      <div class="video-layer" aria-hidden="true">
-        <video
-          id="tunnel-video"
-          src="/assets/tunnel-bg.mp4"
-          muted
-          playsinline
-          loop
-          preload="auto"
-        ></video>
-        <div class="video-vignette"></div>
-        <div class="video-grain"></div>
-      </div>
-
-      <button
-        type="button"
-        id="topic-back"
-        class="topic-back"
-        aria-label="Back to constellation"
-        hidden
-      >
-        <svg
-          class="topic-back-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path d="M7 7l10 10M17 7L7 17" />
-        </svg>
-      </button>
-
-      <canvas id="memory-canvas" aria-hidden="true"></canvas>
-
-      <div id="memory-ui" class="memory-ui" aria-hidden="true">
-        <div class="category-dots"></div>
-        <div class="category-labels"></div>
-        <div class="memory-items"></div>
-      </div>
-
-      <div class="clouds" aria-hidden="true">
-        <div class="cloud cloud-a"></div>
-        <div class="cloud cloud-b"></div>
-        <div class="cloud cloud-c"></div>
-      </div>
-
-      <div class="hero-anchor" id="hero-anchor">
-        <div class="self-hub" id="self-hub">
-          <div class="self-presence" id="self-presence" aria-hidden="true">
-            <div class="self-glow" aria-hidden="true"></div>
-            <img
-              class="self-star"
-              src="/assets/star.png"
-              alt=""
-              draggable="false"
-            />
-          </div>
-          <div id="memory-search-mount"></div>
-        </div>
-      </div>
-
-      <div class="scroll-progress" aria-hidden="true">
-        <div class="scroll-progress-bar" id="scroll-bar"></div>
-      </div>
-
       <div class="tunnel-pin" id="tunnel-pin">
-        <div class="tunnel-pin-track"></div>
+        <div class="tunnel-pin-track">
+          <div class="scene-viewport">
+            <div class="video-layer" aria-hidden="true">
+              <video
+                id="tunnel-video"
+                src="./assets/tunnel-bg.mp4"
+                muted
+                playsinline
+                loop
+                preload="auto"
+              ></video>
+              <div class="video-vignette"></div>
+              <div class="video-grain"></div>
+            </div>
+
+            <div class="clouds" aria-hidden="true">
+              <div class="cloud cloud-a"></div>
+              <div class="cloud cloud-b"></div>
+              <div class="cloud cloud-c"></div>
+            </div>
+
+            <canvas id="memory-canvas" aria-hidden="true"></canvas>
+
+            <div id="memory-ui" class="memory-ui" aria-hidden="true">
+              <div class="category-dots"></div>
+              <div class="category-labels"></div>
+              <div class="memory-items"></div>
+            </div>
+
+            <div class="hero-anchor" id="hero-anchor">
+              <div class="self-hub" id="self-hub">
+                <div class="self-presence" id="self-presence" aria-hidden="true">
+                  <div class="self-glow" aria-hidden="true"></div>
+                  <img
+                    class="self-star"
+                    src="./assets/star.png"
+                    alt=""
+                    draggable="false"
+                  />
+                </div>
+                <div id="memory-search-mount"></div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              id="topic-back"
+              class="topic-back"
+              aria-label="Back to constellation"
+              hidden
+            >
+              <svg
+                class="topic-back-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path d="M7 7l10 10M17 7L7 17" />
+              </svg>
+            </button>
+
+            <div class="scroll-progress" aria-hidden="true">
+              <div class="scroll-progress-bar" id="scroll-bar"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <main class="scroll-stage" aria-hidden="true">

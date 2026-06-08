@@ -1,3 +1,5 @@
+import { assetUrl } from "./paths.js";
+
 function escapeHtml(str) {
   return str
     .replace(/&/g, "&amp;")
@@ -21,7 +23,7 @@ export function createMemoryCard({ onClose, onConnectionClick } = {}) {
   panel.innerHTML = `
     <header class="memory-card-header">
       <div class="memory-card-heading">
-        <img class="memory-card-star" src="/assets/star.png" alt="" draggable="false" />
+        <img class="memory-card-star" src="${assetUrl("assets/star.png")}" alt="" draggable="false" />
         <div>
           <h2 class="memory-card-title" id="memory-card-title"></h2>
           <p class="memory-card-meta"></p>

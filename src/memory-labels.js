@@ -1,14 +1,15 @@
 import * as THREE from "three";
 import { getNodeOffset } from "./memory-graph.js";
+import { assetUrl } from "./paths.js";
 
 const projectVec = new THREE.Vector3();
 
 const TEXTURE_URLS = [
-  "/ellipses/ellipse-8.png",
-  "/ellipses/ellipse-9.png",
-  "/ellipses/ellipse-10.png",
-  "/ellipses/ellipse-11.png",
-  "/ellipses/ellipse-12.png",
+  assetUrl("ellipses/ellipse-8.png"),
+  assetUrl("ellipses/ellipse-9.png"),
+  assetUrl("ellipses/ellipse-10.png"),
+  assetUrl("ellipses/ellipse-11.png"),
+  assetUrl("ellipses/ellipse-12.png"),
 ];
 
 const SIZE_BY_SCALE = (scale) => `clamp(${36 + scale * 52}px, ${5 + scale * 7}vw, ${64 + scale * 56}px)`;
@@ -93,7 +94,7 @@ export function createMemoryUI(categories, { onItemClick } = {}) {
 
         const marker = document.createElement("img");
         marker.className = "memory-item-marker";
-        marker.src = "/assets/star.png";
+        marker.src = assetUrl("assets/star.png");
         marker.alt = "";
         marker.draggable = false;
 

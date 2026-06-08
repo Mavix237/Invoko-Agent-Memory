@@ -70,12 +70,55 @@ textarea {
   min-height: 100vh;
 }
 
+/* ─── Scroll-pinned scene viewport ─── */
+.tunnel-pin {
+  position: relative;
+  height: 420vh;
+  pointer-events: none;
+}
+
+.tunnel-pin-track {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-viewport > * {
+  pointer-events: auto;
+}
+
+.scene-viewport .memory-ui,
+.scene-viewport .clouds,
+.scene-viewport .video-layer {
+  pointer-events: none;
+}
+
+.scene-viewport .hero-anchor,
+.scene-viewport #memory-canvas {
+  pointer-events: auto;
+}
+
 /* ─── Video tunnel background ─── */
 .video-layer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 45%,
+    oklch(0.22 0.06 285),
+    var(--space-deep) 75%
+  );
 }
 
 .video-layer video {
@@ -109,15 +152,17 @@ textarea {
 
 /* ─── Three.js canvas ─── */
 #memory-canvas {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 4;
+  width: 100%;
+  height: 100%;
   pointer-events: auto;
   cursor: default;
 }
 
 .memory-ui {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 6;
   pointer-events: none;
@@ -344,7 +389,7 @@ textarea {
 
 /* ─── Cloud wisps ─── */
 .clouds {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
@@ -394,7 +439,7 @@ textarea {
 
 /* ─── Central self (star) ─── */
 .hero-anchor {
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -707,20 +752,6 @@ textarea {
   background: linear-gradient(to bottom, var(--amber-glow), var(--violet-soft));
   border-radius: 2px;
   transition: height 0.05s linear;
-}
-
-/* ─── Pinned tunnel scrub zone ─── */
-.tunnel-pin {
-  position: relative;
-  z-index: 3;
-  height: 420vh;
-  pointer-events: none;
-}
-
-.tunnel-pin-track {
-  position: sticky;
-  top: 0;
-  height: 100vh;
 }
 
 /* ─── Scroll content panels ─── */

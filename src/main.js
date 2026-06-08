@@ -1,5 +1,6 @@
 import "./styles.css";
 import * as THREE from "three";
+import { assetUrl } from "./paths.js";
 import {
   CATEGORY_COUNT,
   buildMemoryGraph,
@@ -19,6 +20,10 @@ const heroAnchor = document.getElementById("hero-anchor");
 const selfHub = document.getElementById("self-hub");
 const topicBackBtn = document.getElementById("topic-back");
 
+if (video && !video.getAttribute("src")) {
+  video.src = assetUrl("assets/tunnel-bg.mp4");
+}
+
 let videoReady = false;
 let scrollProgress = 0;
 let targetProgress = 0;
@@ -32,9 +37,11 @@ const SMOOTH_RATE = 9;
 const SEEK_MIN_DELTA = 0.04;
 const tunnelPin = document.getElementById("tunnel-pin");
 
-video.loop = true;
-video.preload = "auto";
-video.pause();
+if (video) {
+  video.loop = true;
+  video.preload = "auto";
+  video.pause();
+}
 
 function clampProgress(p) {
   return Math.max(0, Math.min(p, 0.999));
@@ -62,7 +69,7 @@ function resetVideoPosition() {
   scrollProgress = 0;
   targetProgress = 0;
   pendingVideoTime = 0;
-  if (!video.duration) return;
+  if (!video || !video.duration) return;
   video.pause();
   video.currentTime = 0;
 }
@@ -87,23 +94,25 @@ function readyVideo() {
   syncVideoToProgress(scrollProgress, true);
 }
 
-video.addEventListener("seeking", () => {
-  isVideoSeeking = true;
-});
+if (video) {
+  video.addEventListener("seeking", () => {
+    isVideoSeeking = true;
+  });
 
-video.addEventListener("seeked", () => {
-  isVideoSeeking = false;
-});
+  video.addEventListener("seeked", () => {
+    isVideoSeeking = false;
+  });
 
-video.addEventListener("loadeddata", readyVideo);
-if (video.readyState >= 2) readyVideo();
+  video.addEventListener("loadeddata", readyVideo);
+  if (video.readyState >= 2) readyVideo();
+}
 
 window.addEventListener(
   "scroll",
   () => {
     lastScrollTime = performance.now();
     targetProgress = getScrollProgress();
-    scrollBar.style.height = `${targetProgress * 100}%`;
+    if (scrollBar) scrollBar.style.height = `${targetProgress * 100}%`;
   },
   { passive: true }
 );
@@ -140,13 +149,23 @@ function updateVideo(time) {
 
 // ─── Three.js memory constellation ───────────────────────────────────
 const canvas = document.getElementById("memory-canvas");
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  alpha: true,
-  antialias: true,
-});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
+let renderer = null;
+
+if (canvas) {
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch (err) {
+    console.error("WebGL unavailable:", err);
+    canvas.remove();
+  }
+}
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -266,7 +285,7 @@ function updateHoverLines(origin, relatedPositions) {
 }
 
 function pickNode(clientX, clientY) {
-  if (!categories || viewMode === "topic") return -1;
+  if (!canvas || !categories || viewMode === "topic") return -1;
 
   const rect = canvas.getBoundingClientRect();
   let closest = -1;
@@ -296,11 +315,11 @@ function setHovered(index) {
 
   if (index < 0) {
     targetHoverLineOpacity = 0;
-    canvas.style.cursor = "default";
+    if (canvas) canvas.style.cursor = "default";
     return;
   }
 
-  canvas.style.cursor = "pointer";
+  if (canvas) canvas.style.cursor = "pointer";
   const related = relatedByNode[index].map((i) => nodePositions[i]);
   updateHoverLines(nodePositions[index], related);
 }
@@ -512,14 +531,14 @@ function animate(time) {
     });
   }
 
-  renderer.render(scene, camera);
+  if (renderer) renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer?.setSize(window.innerWidth, window.innerHeight);
 });
 
 async function init() {
@@ -578,7 +597,9 @@ async function init() {
     requestAnimationFrame(() => memorySearch?.focus());
   });
 
-  canvas.addEventListener("mousemove", (e) => {
+  document.getElementById("memory-ui")?.removeAttribute("aria-hidden");
+
+  canvas?.addEventListener("mousemove", (e) => {
     targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
     targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
     if (viewMode === "constellation") {
@@ -586,9 +607,9 @@ async function init() {
     }
   });
 
-  canvas.addEventListener("mouseleave", () => setHovered(-1));
+  canvas?.addEventListener("mouseleave", () => setHovered(-1));
 
-  canvas.addEventListener("click", (e) => {
+  canvas?.addEventListener("click", (e) => {
     const idx = pickNode(e.clientX, e.clientY);
     if (viewMode === "constellation") {
       if (idx >= 0) enterTopic(idx);
