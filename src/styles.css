@@ -1,0 +1,1023 @@
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../fonts/SF-Pro-Display-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../fonts/SF-Pro-Display-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../fonts/SF-Pro-Display-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("../fonts/SF-Pro-Display-Semibold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font-sans: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  --space-deep: oklch(0.12 0.04 280);
+  --space-mid: oklch(0.18 0.06 285);
+  --amber-glow: oklch(0.78 0.14 75);
+  --amber-core: oklch(0.68 0.16 55);
+  --violet-soft: oklch(0.55 0.12 310);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  background: var(--space-deep);
+  overflow-x: hidden;
+}
+
+button,
+input,
+textarea {
+  font-family: var(--font-sans);
+}
+
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ─── Video tunnel background ─── */
+.video-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.video-layer video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.06);
+  filter: saturate(1.15) contrast(1.06) brightness(0.74);
+}
+
+.video-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 45%,
+    transparent 20%,
+    oklch(0.08 0.05 280 / 0.7) 100%
+  );
+  pointer-events: none;
+}
+
+.video-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ─── Three.js canvas ─── */
+#memory-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.memory-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+  --expand: 0;
+}
+
+.memory-ui::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(72vw, 520px);
+  height: min(72vw, 520px);
+  transform: translate(-50%, -48%);
+  border: 1px dashed oklch(0.55 0.04 280 / 0.12);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.category-dots,
+.category-labels,
+.memory-items {
+  position: absolute;
+  inset: 0;
+}
+
+.category-dot-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--dot-size, 72px);
+  height: var(--dot-size, 72px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+  transition:
+    opacity 0.35s var(--ease-out-expo),
+    transform 0.35s var(--ease-out-expo);
+}
+
+.category-dot-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -16%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    oklch(0.96 0.008 280 / 0.55) 0%,
+    oklch(0.9 0.006 280 / 0.22) 42%,
+    transparent 62%
+  );
+  mix-blend-mode: screen;
+}
+
+.category-dot {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(2.6) contrast(1.1) saturate(0.85)
+    drop-shadow(0 0 6px oklch(0.94 0.01 280 / 0.7))
+    drop-shadow(0 0 14px oklch(0.88 0.008 280 / 0.28));
+}
+
+.category-tag {
+  position: fixed;
+  top: 0;
+  left: 0;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.category-tag {
+  transform: translate(-50%, -50%);
+  letter-spacing: 0.04em;
+  transition: opacity 0.35s var(--ease-out-expo);
+}
+
+.category-tag {
+  font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+  color: oklch(0.88 0.03 280 / 0.75);
+  text-transform: lowercase;
+}
+
+.category-tag.active {
+  color: oklch(0.95 0.04 280);
+  opacity: 1;
+}
+
+.memory-items {
+  pointer-events: none;
+  z-index: 2;
+}
+
+.memory-ui.topic-active .memory-items {
+  pointer-events: auto;
+}
+
+.memory-item {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  pointer-events: auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.45rem 0.2rem 0.15rem;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+  font-weight: 400;
+  color: oklch(0.94 0.01 280 / 0.92);
+  text-shadow: 0 0 12px oklch(0.75 0.02 280 / 0.25);
+  cursor: pointer;
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.45s var(--ease-out-expo),
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.memory-item:hover:not(:disabled) {
+  background: oklch(0.2 0.01 280 / 0.35);
+  border-color: oklch(0.9 0.01 280 / 0.12);
+}
+
+.memory-item.selected {
+  background: oklch(0.24 0.015 280 / 0.5);
+  border-color: oklch(0.92 0.01 280 / 0.22);
+}
+
+.memory-item.pinned {
+  z-index: 102;
+  pointer-events: none;
+  background: oklch(0.18 0.01 280 / 0.55);
+  border-color: oklch(0.94 0.01 280 / 0.28);
+  box-shadow: 0 0 24px oklch(0.08 0.02 280 / 0.45);
+  opacity: 1 !important;
+  filter: none;
+}
+
+.memory-item.dimmed {
+  pointer-events: none;
+}
+
+.memory-item.is-entering {
+  pointer-events: none;
+}
+
+.memory-item-marker {
+  flex-shrink: 0;
+  width: clamp(10px, 1.4vw, 14px);
+  height: clamp(10px, 1.4vw, 14px);
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(1.15) contrast(1.05)
+    drop-shadow(0 0 6px oklch(0.92 0.01 280 / 0.5));
+  opacity: 0.88;
+}
+
+.memory-item-text {
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+}
+
+.topic-back {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid oklch(0.88 0.015 280 / 0.22);
+  border-radius: 50%;
+  background: oklch(0.16 0.01 280 / 0.42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.04) inset,
+    0 4px 20px oklch(0.05 0.02 280 / 0.35);
+  color: oklch(0.94 0.01 280 / 0.88);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease-out-expo),
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s var(--ease-out-expo),
+    color 0.25s ease;
+}
+
+.topic-back-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+}
+
+.topic-back:hover {
+  border-color: oklch(0.92 0.01 280 / 0.38);
+  background: oklch(0.2 0.01 280 / 0.55);
+  color: oklch(0.98 0.005 280);
+  transform: scale(1.04);
+}
+
+.topic-back:active {
+  transform: scale(0.97);
+}
+
+.topic-back.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── Cloud wisps ─── */
+.clouds {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: cloud-float 20s ease-in-out infinite alternate;
+}
+
+.cloud-a {
+  width: 320px;
+  height: 180px;
+  top: 12%;
+  left: -5%;
+  background: oklch(0.35 0.08 300 / 0.25);
+}
+
+.cloud-b {
+  width: 280px;
+  height: 160px;
+  bottom: 20%;
+  right: 5%;
+  background: oklch(0.4 0.1 55 / 0.15);
+  animation-delay: -7s;
+}
+
+.cloud-c {
+  width: 200px;
+  height: 120px;
+  top: 55%;
+  left: 70%;
+  background: oklch(0.3 0.06 280 / 0.2);
+  animation-delay: -14s;
+}
+
+@keyframes cloud-float {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(40px, -30px) scale(1.1);
+  }
+}
+
+/* ─── Central self (star) ─── */
+.hero-anchor {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+  pointer-events: none;
+}
+
+.self-hub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.self-presence {
+  position: relative;
+  width: clamp(88px, 12vw, 140px);
+  height: clamp(88px, 12vw, 140px);
+  cursor: pointer;
+  animation: self-breathe 5s ease-in-out infinite;
+}
+
+.self-glow {
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    oklch(0.96 0.008 280 / 0.35) 0%,
+    oklch(0.9 0.006 280 / 0.12) 45%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.5s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.hero-anchor.self-active .self-glow {
+  opacity: 0.85;
+  transform: scale(1.04);
+  animation: self-glow-pulse 4.5s ease-in-out infinite;
+}
+
+.hero-anchor.self-active .self-presence {
+  animation: self-breathe-active 4.8s ease-in-out infinite;
+}
+
+.self-star {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(1.1) contrast(1.05)
+    drop-shadow(0 0 16px oklch(0.82 0.08 280 / 0.55))
+    drop-shadow(0 0 36px oklch(0.72 0.06 280 / 0.3));
+  transition: filter 0.45s var(--ease-out-expo);
+}
+
+.hero-anchor.self-active .self-star {
+  filter: brightness(1.14) contrast(1.03)
+    drop-shadow(0 0 18px oklch(0.95 0.01 280 / 0.5))
+    drop-shadow(0 0 36px oklch(0.9 0.006 280 / 0.22));
+}
+
+@keyframes self-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes self-breathe-active {
+  0%,
+  100% {
+    transform: scale(1.01);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes self-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+/* ─── Memory search (self hover) ─── */
+.memory-search {
+  position: absolute;
+  top: calc(100% + 1.1rem);
+  left: 50%;
+  width: min(340px, 78vw);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.45s var(--ease-out-expo),
+    visibility 0.45s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.memory-search.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.memory-search-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.memory-search-anchor {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.memory-search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid oklch(0.9 0.01 280 / 0.14);
+  border-radius: 999px;
+  background: oklch(0.14 0.01 280 / 0.42);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.03) inset;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.memory-search-field:focus-within {
+  border-color: oklch(0.94 0.01 280 / 0.28);
+  background: oklch(0.16 0.01 280 / 0.55);
+}
+
+.memory-search-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+  stroke: oklch(0.78 0.01 280 / 0.7);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.memory-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: oklch(0.94 0.01 280 / 0.92);
+  outline: none;
+}
+
+.memory-search-input::placeholder {
+  color: oklch(0.7 0.01 280 / 0.55);
+  text-transform: lowercase;
+}
+
+.memory-search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.memory-search-chip {
+  padding: 0.28rem 0.65rem;
+  border: 1px solid oklch(0.88 0.01 280 / 0.12);
+  border-radius: 999px;
+  background: oklch(0.15 0.01 280 / 0.35);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: oklch(0.8 0.01 280 / 0.75);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.memory-search-chip:hover,
+.memory-search-chip.active {
+  border-color: oklch(0.92 0.01 280 / 0.28);
+  background: oklch(0.2 0.01 280 / 0.5);
+  color: oklch(0.96 0.005 280);
+}
+
+.memory-search-results-panel {
+  overflow: hidden;
+  max-height: 0;
+  margin-top: 0;
+  transition: max-height 0.48s var(--ease-out-expo);
+}
+
+.memory-search-results-panel.open {
+  margin-top: 0.55rem;
+}
+
+.memory-search-results {
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  background: transparent;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.28s var(--ease-out-expo),
+    transform 0.38s var(--ease-out-expo),
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.memory-search-results.is-swapping {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.memory-search-results.has-results:not(.is-swapping) {
+  border-color: oklch(0.88 0.01 280 / 0.1);
+  background: oklch(0.12 0.01 280 / 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.memory-search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid oklch(0.88 0.01 280 / 0.06);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.memory-search-results li:last-child .memory-search-result {
+  border-bottom: none;
+}
+
+.memory-search-result:hover {
+  background: oklch(0.2 0.01 280 / 0.45);
+}
+
+.memory-search-result-title {
+  font-size: 0.8rem;
+  text-transform: lowercase;
+  color: oklch(0.94 0.01 280 / 0.92);
+}
+
+.memory-search-result-meta {
+  font-size: 0.66rem;
+  color: oklch(0.68 0.01 280 / 0.65);
+  text-transform: lowercase;
+}
+
+.memory-search-empty {
+  padding: 0.65rem 0.75rem;
+  font-size: 0.75rem;
+  color: oklch(0.65 0.01 280 / 0.6);
+  text-transform: lowercase;
+}
+
+.scroll-progress {
+  position: fixed;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 2px;
+  height: 120px;
+  background: oklch(0.3 0.04 285 / 0.5);
+  border-radius: 2px;
+}
+
+.scroll-progress-bar {
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to bottom, var(--amber-glow), var(--violet-soft));
+  border-radius: 2px;
+  transition: height 0.05s linear;
+}
+
+/* ─── Pinned tunnel scrub zone ─── */
+.tunnel-pin {
+  position: relative;
+  z-index: 3;
+  height: 420vh;
+  pointer-events: none;
+}
+
+.tunnel-pin-track {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+/* ─── Scroll content panels ─── */
+.scroll-stage {
+  position: relative;
+  z-index: 5;
+}
+
+.scroll-spacer {
+  height: 120vh;
+}
+
+/* IP character scroll parallax */
+.hero-anchor {
+  transition: transform 0.1s linear;
+}
+
+/* ─── Memory detail card ─── */
+.memory-card-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: oklch(0.06 0.02 280 / 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease-out-expo),
+    visibility 0.4s var(--ease-out-expo);
+}
+
+.memory-card-backdrop.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.memory-card {
+  position: fixed;
+  top: 50%;
+  right: clamp(1rem, 3vw, 2rem);
+  z-index: 103;
+  width: min(420px, calc(100vw - 2rem));
+  max-height: min(82vh, 720px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid oklch(0.9 0.01 280 / 0.14);
+  border-radius: 1.1rem;
+  background: oklch(0.14 0.015 280 / 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.04) inset,
+    0 24px 60px oklch(0.04 0.02 280 / 0.55);
+  color: oklch(0.93 0.01 280);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(1.5rem, -50%) scale(0.97);
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.45s var(--ease-out-expo),
+    visibility 0.45s var(--ease-out-expo);
+  overflow: hidden;
+}
+
+.memory-card.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(0, -50%) scale(1);
+}
+
+.memory-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.15rem 0.9rem;
+  border-bottom: 1px solid oklch(0.9 0.01 280 / 0.08);
+}
+
+.memory-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.memory-card-star {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(1.1);
+  margin-top: 0.15rem;
+}
+
+.memory-card-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  text-transform: lowercase;
+}
+
+.memory-card-meta {
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: oklch(0.78 0.01 280 / 0.75);
+  text-transform: lowercase;
+}
+
+.memory-card-close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: 1px solid oklch(0.88 0.01 280 / 0.18);
+  border-radius: 50%;
+  background: oklch(0.18 0.01 280 / 0.5);
+  color: oklch(0.92 0.01 280 / 0.9);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s var(--ease-out-expo);
+}
+
+.memory-card-close svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+}
+
+.memory-card-close:hover {
+  border-color: oklch(0.92 0.01 280 / 0.32);
+  background: oklch(0.22 0.01 280 / 0.65);
+  transform: scale(1.04);
+}
+
+.memory-card-body {
+  padding: 0.35rem 1.15rem 1rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.5 0.02 280 / 0.4) transparent;
+}
+
+.memory-card-section {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid oklch(0.9 0.01 280 / 0.06);
+}
+
+.memory-card-section:last-of-type {
+  border-bottom: none;
+}
+
+.memory-card-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: oklch(0.72 0.01 280 / 0.7);
+  margin-bottom: 0.55rem;
+}
+
+.memory-card-summary {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: oklch(0.9 0.01 280 / 0.88);
+}
+
+.memory-card-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.memory-card-msg {
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.memory-card-msg-role {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  margin-bottom: 0.25rem;
+  opacity: 0.55;
+}
+
+.memory-card-msg--user {
+  align-self: flex-end;
+  max-width: 92%;
+  background: oklch(0.22 0.015 280 / 0.55);
+  border: 1px solid oklch(0.9 0.01 280 / 0.08);
+}
+
+.memory-card-msg--agent {
+  align-self: flex-start;
+  max-width: 92%;
+  background: oklch(0.18 0.01 280 / 0.4);
+  border: 1px solid oklch(0.88 0.01 280 / 0.06);
+}
+
+.memory-card-connections {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.memory-card-connection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid oklch(0.88 0.01 280 / 0.1);
+  border-radius: 0.55rem;
+  background: oklch(0.17 0.01 280 / 0.45);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.memory-card-connection:hover {
+  border-color: oklch(0.92 0.01 280 / 0.22);
+  background: oklch(0.2 0.01 280 / 0.6);
+}
+
+.memory-card-connection--empty {
+  cursor: default;
+  font-size: 0.8rem;
+  color: oklch(0.7 0.01 280 / 0.6);
+}
+
+.memory-card-connection-title {
+  font-size: 0.82rem;
+  text-transform: lowercase;
+}
+
+.memory-card-connection-meta {
+  font-size: 0.68rem;
+  color: oklch(0.72 0.01 280 / 0.7);
+  text-transform: lowercase;
+}
+
+.memory-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0 0.25rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: oklch(0.68 0.01 280 / 0.65);
+  text-transform: lowercase;
+}
+
+@media (max-width: 640px) {
+  .memory-card {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-height: 78vh;
+    border-radius: 1.1rem 1.1rem 0 0;
+    transform: translateY(100%);
+  }
+
+  .memory-card.visible {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
